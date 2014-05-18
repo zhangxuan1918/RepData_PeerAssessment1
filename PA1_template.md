@@ -2,7 +2,8 @@
 
 
 ## Loading and preprocessing the data
-```{r, echo=TRUE}
+
+```r
 filename.zip <- "activity.zip"
 filename.csv <- "activity.csv"
 # unzip file
@@ -12,8 +13,10 @@ data <- read.csv(filename.csv, head = T)
 ```
 
 
+
 ## What is mean total number of steps taken per day?
-```{r, echo=TRUE}
+
+```r
 library(ggplot2)
 # subset data to get rows with valid steps
 data.clean <- na.omit(data)
@@ -24,17 +27,28 @@ steps.by.date <- tapply(data.clean$steps, data.clean$date, sum)
 # remove na
 steps.by.date <- steps.by.date[!is.na(steps.by.date)]
 qplot(steps.by.date, geom = "histogram", xlab = "total steps/day", main = "Histogram of steps/day")
+```
+
+```
+## stat_bin: binwidth defaulted to range/30. Use 'binwidth = x' to adjust this.
+```
+
+![plot of chunk unnamed-chunk-2](figure/unnamed-chunk-2.png) 
+
+```r
 
 mean.steps.by.date <- mean(steps.by.date, na.rm = T)
 median.steps.by.date <- median(steps.by.date, na.rm = T)
 ```
 
+
 The mean and median of total number of steps taken per day are 
-`r mean.steps.by.date` and `r median.steps.by.date` respectively.
+1.0766 &times; 10<sup>4</sup> and 1.0765 &times; 10<sup>4</sup> respectively.
 
 
 ## What is the average daily activity pattern?
-```{r, echo=TRUE}
+
+```r
 # average over intervals across different days
 average.by.inteval <- tapply(data.clean$steps, data.clean$interval, mean)
 # find the interval with maximum steps
@@ -48,10 +62,14 @@ qplot(x = as.numeric(rownames(average.by.inteval)), y = average.by.inteval[,
     1], geom = c("line"), xlab = "interval(5-min)", ylab = "average steps", 
     main = "average steps per interval")
 ```
-5-minute interval `r max.index` contains the maximum number of steps on average.
+
+![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3.png) 
+
+5-minute interval 104 contains the maximum number of steps on average.
 
 ## Imputing missing values
-```{r, echo=TRUE}
+
+```r
 # number of na entries in data
 num.na <- nrow(data) - nrow(data.clean)
 # use mean of the interval to replace NA value
@@ -75,26 +93,64 @@ steps.replace.by.date <- tapply(data.replace.clean$steps, data.replace.clean$dat
     sum)
 
 qplot(steps.replace.by.date, geom = "histogram", xlab = "total steps/day", main = "Histogram of steps/day")
+```
+
+```
+## stat_bin: binwidth defaulted to range/30. Use 'binwidth = x' to adjust this.
+```
+
+![plot of chunk unnamed-chunk-4](figure/unnamed-chunk-4.png) 
+
+```r
 
 mean.steps.replace.by.date <- mean(steps.replace.by.date, na.rm = T)
 median.steps.replace.by.date <- median(steps.replace.by.date, na.rm = T)
 ```
+
 The mean and median of total number of steps taken per day are 
 1.0766 &times; 10<sup>4</sup> and 1.0766 &times; 10<sup>4</sup> 
 respectively. As we can see, there is no change in the mean and a slightly change
 in median. To find out the reason, we need to locate the positions of NA values.
 Here, we list the NA values in data
 
-```{r, echo=TRUE}
+
+```r
 tapply(is.na(data$steps), data$date, sum)
 ```
+
+```
+## 2012-10-01 2012-10-02 2012-10-03 2012-10-04 2012-10-05 2012-10-06 
+##        288          0          0          0          0          0 
+## 2012-10-07 2012-10-08 2012-10-09 2012-10-10 2012-10-11 2012-10-12 
+##          0        288          0          0          0          0 
+## 2012-10-13 2012-10-14 2012-10-15 2012-10-16 2012-10-17 2012-10-18 
+##          0          0          0          0          0          0 
+## 2012-10-19 2012-10-20 2012-10-21 2012-10-22 2012-10-23 2012-10-24 
+##          0          0          0          0          0          0 
+## 2012-10-25 2012-10-26 2012-10-27 2012-10-28 2012-10-29 2012-10-30 
+##          0          0          0          0          0          0 
+## 2012-10-31 2012-11-01 2012-11-02 2012-11-03 2012-11-04 2012-11-05 
+##          0        288          0          0        288          0 
+## 2012-11-06 2012-11-07 2012-11-08 2012-11-09 2012-11-10 2012-11-11 
+##          0          0          0        288        288          0 
+## 2012-11-12 2012-11-13 2012-11-14 2012-11-15 2012-11-16 2012-11-17 
+##          0          0        288          0          0          0 
+## 2012-11-18 2012-11-19 2012-11-20 2012-11-21 2012-11-22 2012-11-23 
+##          0          0          0          0          0          0 
+## 2012-11-24 2012-11-25 2012-11-26 2012-11-27 2012-11-28 2012-11-29 
+##          0          0          0          0          0          0 
+## 2012-11-30 
+##        288
+```
+
 From the result, we see that once NA appears, the data is NA for all intervals
 measured in that day. There is no partially recorded data, Either the data is
 valid for a day, or the data is completely lost for a day. Thus, imputing data 
 doesn't affect the total steps of days with valid measurements. 
 
 ## Are there differences in activity patterns between weekdays and weekends?
-```{r, echo=TRUE}
+
+```r
 extract.day <- function(index) {
     t <- weekdays(as.Date(data.replace.clean[index, ]$date))
     
@@ -135,6 +191,9 @@ week.data <- rbind(weekday.data, weekend.data)
 g <- ggplot(data = week.data, aes(x = interval, y = average.steps, color = day))
 g + geom_line() + facet_grid(day ~ .)
 ```
+
+![plot of chunk unnamed-chunk-6](figure/unnamed-chunk-6.png) 
+
 From the figure, there exits some difference between the pattern for week days
 and weekend days. In week days, the steps from interval 1000 onwards are less than
 those of weekend days. People are likely to do more activities during weekend.
